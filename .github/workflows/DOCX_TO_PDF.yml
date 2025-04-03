@@ -3,8 +3,8 @@ name: Convert DOCX to PDF
 on:
   push:
     paths:
-      - "New Microsoft Word Document.docx"  # Runs when New Microsoft Word Document.docx is updated
-  workflow_dispatch:  # Allows manual trigger
+      - "*.docx"
+  workflow_dispatch:
 
 jobs:
   convert:
@@ -17,27 +17,17 @@ jobs:
       - name: Install LibreOffice
         run: sudo apt-get update && sudo apt-get install -y libreoffice
 
-      - name: Verify File Exists
-        run: ls -lah New Microsoft Word Document.docx || echo "DOCX file not found!"
+      - name: Check if DOCX File Exists
+        run: ls -lah || echo "DOCX file not found!"
 
       - name: Convert DOCX to PDF
-        run: libreoffice --headless --convert-to pdf --outdir . New Microsoft Word Document.docx
+        run: libreoffice --headless --convert-to pdf --outdir . "New Microsoft Word Document.docx"
 
       - name: List Files After Conversion
         run: ls -lah
-        
+
       - name: Upload PDF as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: converted-pdf
-          path: New Microsoft Word Document.pdf
-
-
-      - name: Commit and Push PDF to Repo
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add New Microsoft Word Document.pdf
-          git commit -m "Auto-converted DOCX to PDF"
-          git push
-        continue-on-error: true  # Prevent workflow failure if there's nothing to commit
+          path: "*.pdf"
