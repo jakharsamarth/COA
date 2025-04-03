@@ -3,54 +3,24 @@ name: Convert DOCX to PDF
 on:
   push:
     paths:
-      - '**.docx'   # Trigger when a DOCX file is uploaded
-  workflow_dispatch:  # Allows manual triggering
+      - "document.docx"  # Change to your actual .docx file path
+  workflow_dispatch:
 
 jobs:
   convert:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libreoffice pandoc
+      - name: Install LibreOffice
+        run: sudo apt-get update && sudo apt-get install -y libreoffice
 
-      - name: Debug File Listing
-        run: ls -lah
+      - name: Convert DOCX to PDF
+        run: libreoffice --headless --convert-to pdf document.docx
 
-      - name: Convert DOCX to PDF (LibreOffice)
-        run: |
-          mkdir -p pdf_output
-          for file in *.docx; do
-            echo "Converting $file with LibreOffice..."
-            libreoffice --headless --convert-to pdf "$file" --outdir pdf_output || echo "LibreOffice failed for $file"
-          done
-
-      - name: Alternative Conversion (Pandoc, if LibreOffice fails)
-        run: |
-          for file in *.docx; do
-            output="pdf_output/${file%.docx}.pdf"
-            if [ ! -f "pdf_output/${file%.docx}.pdf" ]; then
-              echo "Trying Pandoc for $file..."
-              pandoc "$file" -o "$output" || echo "Pandoc failed for $file"
-            fi
-          done
-
-      - name: Verify PDF Output
-        run: ls -lah pdf_output
-
-      - name: Commit and Push PDFs
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          mv pdf_output/*.pdf .
-          git add *.pdf
-          git commit -m "Generated PDF from DOCX"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Upload PDF as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: converted-pdf
+          path: document.pdf
