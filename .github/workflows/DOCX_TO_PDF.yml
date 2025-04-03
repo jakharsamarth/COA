@@ -30,14 +30,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: converted-pdf
-          path: python_yaml.pdf
+          path: New Microsoft Word Document.pdf
 
 
       - name: Commit and Push PDF to Repo
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add python_yaml.pdf
+          git add New Microsoft Word Document.pdf
           git commit -m "Auto-converted DOCX to PDF"
           git push
         continue-on-error: true  # Prevent workflow failure if there's nothing to commit
