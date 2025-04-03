@@ -14,17 +14,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install LibreOffice
-        run: sudo apt-get install -y libreoffice
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice pandoc
 
-      - name: Convert DOCX to PDF
+      - name: Debug File Listing
+        run: ls -lah
+
+      - name: Convert DOCX to PDF (LibreOffice)
         run: |
           mkdir -p pdf_output
           for file in *.docx; do
-            libreoffice --headless --convert-to pdf "$file" --outdir pdf_output
+            echo "Converting $file with LibreOffice..."
+            libreoffice --headless --convert-to pdf "$file" --outdir pdf_output || echo "LibreOffice failed for $file"
           done
 
-      - name: Commit and Push PDF
+      - name: Alternative Conversion (Pandoc, if LibreOffice fails)
+        run: |
+          for file in *.docx; do
+            output="pdf_output/${file%.docx}.pdf"
+            if [ ! -f "pdf_output/${file%.docx}.pdf" ]; then
+              echo "Trying Pandoc for $file..."
+              pandoc "$file" -o "$output" || echo "Pandoc failed for $file"
+            fi
+          done
+
+      - name: Verify PDF Output
+        run: ls -lah pdf_output
+
+      - name: Commit and Push PDFs
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
@@ -34,3 +53,4 @@ jobs:
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
