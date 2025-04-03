@@ -3,12 +3,13 @@ name: Convert DOCX to PDF
 on:
   push:
     paths:
-      - "document.docx"  # Change to your actual .docx file path
-  workflow_dispatch:
+      - "document.docx"  # Runs when document.docx is updated
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   convert:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -16,11 +17,26 @@ jobs:
       - name: Install LibreOffice
         run: sudo apt-get update && sudo apt-get install -y libreoffice
 
+      - name: Verify File Exists
+        run: ls -lah document.docx || echo "DOCX file not found!"
+
       - name: Convert DOCX to PDF
-        run: libreoffice --headless --convert-to pdf document.docx
+        run: libreoffice --headless --convert-to pdf --outdir . document.docx
+
+      - name: List Files After Conversion
+        run: ls -lah
 
       - name: Upload PDF as Artifact
         uses: actions/upload-artifact@v3
         with:
           name: converted-pdf
           path: document.pdf
+
+      - name: Commit and Push PDF to Repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add document.pdf
+          git commit -m "Auto-converted DOCX to PDF"
+          git push
+        continue-on-error: true  # Prevent workflow failure if there's nothing to commit
