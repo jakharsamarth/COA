@@ -25,12 +25,13 @@ jobs:
 
       - name: List Files After Conversion
         run: ls -lah
-
+        
       - name: Upload PDF as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: converted-pdf
           path: document.pdf
+
 
       - name: Commit and Push PDF to Repo
         run: |
