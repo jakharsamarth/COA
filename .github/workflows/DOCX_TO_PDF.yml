@@ -1,0 +1,36 @@
+name: Convert DOCX to PDF
+
+on:
+  push:
+    paths:
+      - '**.docx'   # Trigger when a DOCX file is uploaded
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install LibreOffice
+        run: sudo apt-get install -y libreoffice
+
+      - name: Convert DOCX to PDF
+        run: |
+          mkdir -p pdf_output
+          for file in *.docx; do
+            libreoffice --headless --convert-to pdf "$file" --outdir pdf_output
+          done
+
+      - name: Commit and Push PDF
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          mv pdf_output/*.pdf .
+          git add *.pdf
+          git commit -m "Generated PDF from DOCX"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
